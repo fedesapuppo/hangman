@@ -1,0 +1,4 @@
+--- !ruby/object:Game
+secret_word: PARTNERSHIP
+currently_guessed: _A_____S___
+guesses_left: 8

@@ -1,4 +1,5 @@
 # :nodoc:
+
 class Game
   attr_accessor :secret_word, :currently_guessed, :guesses_left
 
@@ -25,16 +26,23 @@ class Game
   end
 
   def make_guess
-    puts 'Please, enter a letter:'
+    puts "Please, enter a letter, or enter 'save' to save the game"
     guess = gets.chomp.upcase
-    until /[A-Z]/.match(guess) && guess.length == 1
-      puts 'Invalid choice. Please, enter a single letter:'
+    if guess == 'SAVE'
+      game_state = YAML.dump($game)
+      File.open(File.join(Dir.pwd, "../saved/saved_game.yaml"), 'w') { |file| file.write game_state}
+      puts 'The game has been saved'
+      puts
+    end
+    until ((/[A-Z]/.match(guess) && guess.length == 1) || (guess == 'SAVE'))
+      puts "Invalid choice. Please, enter a single letter, or 'save' to save the game:"
       guess = gets.chomp.upcase
     end
     guess
   end
 
   def initialize_game
+    game = Game.new
     display_welcome_message
     puts "You have #{@guesses_left} guesses left"
     puts @currently_guessed
@@ -43,7 +51,7 @@ class Game
   def check_guess(guess)
     if @secret_word.include? guess
       add_guess(guess)
-    else
+    elsif guess != 'SAVE'
       @guesses_left -= 1
     end
   end
@@ -62,8 +70,18 @@ class Game
     end
   end
 
-  def play_game
+  def play_new_game
     initialize_game
+    while @guesses_left.positive? && @currently_guessed != @secret_word
+      guess = make_guess
+      check_guess(guess)
+      puts "You have #{@guesses_left} guesses left"
+      puts @currently_guessed
+      check_win_and_lose
+    end
+  end
+
+  def play_loaded_game
     while @guesses_left.positive? && @currently_guessed != @secret_word
       guess = make_guess
       check_guess(guess)
